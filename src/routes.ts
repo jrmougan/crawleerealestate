@@ -1,21 +1,22 @@
 import { createPlaywrightRouter } from 'crawlee';
+import { IdealistaCrawler } from './scrappers/IdealistaCrawler.js';
 
 export const router = createPlaywrightRouter();
 
-router.addDefaultHandler(async ({ enqueueLinks, log }) => {
-    log.info(`enqueueing new URLs`);
-    await enqueueLinks({
-        globs: ['https://crawlee.dev/**'],
-        label: 'detail',
-    });
-});
 
-router.addHandler('detail', async ({ request, page, log, pushData }) => {
-    const title = await page.title();
-    log.info(`${title}`, { url: request.loadedUrl });
+router.addDefaultHandler(async ({ page, request, log }) => {
+    const { url } = request;
+    log.info(`Navigating to ${url}`);
+    if (url.includes('idealista.com')) {
+        await page.waitForSelector('section.items-container');
+        new IdealistaCrawler({ telegramId: '123' }).parseAssets(page);
 
-    await pushData({
-        url: request.loadedUrl,
-        title,
-    });
-});
+    } else if (url.includes('fotocasa.es')) {
+        await page.waitForSelector('h1');
+        const title = await page.title();
+        log.info(`Title: ${title}`);
+    } else {
+        log.info(`No handler for ${url}`);
+    }
+
+})
