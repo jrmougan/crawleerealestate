@@ -1,5 +1,6 @@
 import { createPlaywrightRouter } from 'crawlee';
 import { IdealistaCrawler } from './scrappers/IdealistaCrawler.js';
+import { FotocasaCrawler } from './scrappers/FotocasaCrawler.js';
 
 export const router = createPlaywrightRouter();
 
@@ -9,12 +10,26 @@ router.addDefaultHandler(async ({ page, request, log }) => {
     log.info(`Navigating to ${url}`);
     if (url.includes('idealista.com')) {
         await page.waitForSelector('section.items-container');
-        new IdealistaCrawler({ telegramId: '123' }).parseAssets(page);
+        await new IdealistaCrawler({ telegramId: '123' }).parseAssets(page);
 
     } else if (url.includes('fotocasa.es')) {
-        await page.waitForSelector('h1');
-        const title = await page.title();
-        log.info(`Title: ${title}`);
+        const button = await page.waitForSelector('#didomi-notice-agree-button');
+        await button.click();
+        await page.waitForSelector('main.re-SearchPage-wrapper');
+        await page.evaluate(() => {
+          // Scroll to the bottom of the page to load all flats
+            const scrollInterval = setInterval(() => {
+                const lazyFlats = document.querySelectorAll('section.re-SearchResult div.sui-PerfDynamicRendering-placeholder');
+                if (lazyFlats.length === 0) {
+                  clearInterval(scrollInterval)
+                } else {
+                  lazyFlats[0].scrollIntoView();
+                }
+              }, 1500)
+
+        });
+        await page.waitForSelector('article:nth-child(33)');
+        await new FotocasaCrawler({ telegramId: '123' }).parseAssets(page);
     } else {
         log.info(`No handler for ${url}`);
     }

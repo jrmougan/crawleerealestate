@@ -1,21 +1,29 @@
 // For more information, see https://crawlee.dev/
-import {  Dataset, PlaywrightCrawler, ProxyConfiguration } from "crawlee";
+import {  Dataset, PlaywrightCrawler, ProxyConfiguration, RequestQueue } from "crawlee";
+import { Telegraf } from 'telegraf'
 
-import { CronJob } from "cron";
-import { generateUserAgent } from 'useragent-wizard';
 
 import { router } from "./routes.js";
 // Import the framework and instantiate it
 import Fastify from "fastify";
+import { parse } from "path";
+import { IAsset } from "./entity/IAsset.js";
 
 const fastify = Fastify({
   logger: true,
 });
 
+const telegram = new Telegraf('5042109408:AAHBrCsNiuI3lXBEiLjmyxqXapX4h1LHbJs', {handlerTimeout:10});
+
+
 // Declare a route
 fastify.get("/", async function handler(request, reply) {
+  
+
   return { hello: "world" };
 });
+
+
 
 
 
@@ -39,6 +47,7 @@ try {
 function startCrawling() {
   const startUrls = ["https://www.idealista.com/alquiler-habitacion/sevilla-sevilla/", "https://www.fotocasa.es/es/comprar/viviendas/sevilla-capital/todas-las-zonas/l"];
 
+
   const crawler = new PlaywrightCrawler({
     // proxyConfiguration: new ProxyConfiguration({ proxyUrls: ['...'] }),
     requestHandler: router,
@@ -50,16 +59,32 @@ function startCrawling() {
   });
 
   try {
-  crawler.run(startUrls).then(() => {
+  crawler.run(startUrls).then(async () => {
     console.log("Crawling finished!");
-    Dataset.open().then((dataset) => {
-      console.log("Dataset length", Object.keys(dataset).length);
-      dataset.forEach((data) => {
-        console.log(data);
-      
-      });
-    });
+
+    const dataset = await Dataset.open();
+
+    const data = await dataset.getData();
+
+    console.log(data.count)
+    for (const item of data.items) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      const asset = item as IAsset;
+      console.log('enviando mensaje')
+      telegram.telegram.sendMessage("-1002126678632", `${asset.price}, ${asset.link}`, { parse_mode: 'HTML' }).then(() => {
+        console.log('message sent')
+      })
+
+
+    }
+
+    console.log('droping dataset')
+    await dataset.drop();
+    const queue = await RequestQueue.open();
+    await queue.drop();
+    
   });
+  crawler.teardown
 } catch (error) {
   console.error(error);
 }
