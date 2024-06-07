@@ -10,7 +10,7 @@ router.addDefaultHandler(async ({ page, request, log }) => {
     log.info(`Navigating to ${url}`);
     if (url.includes('idealista.com')) {
         await page.waitForSelector('section.items-container');
-        await new IdealistaCrawler({ telegramId: '123' }).parseAssets(page);
+        await new IdealistaCrawler().parseAssets(page);
 
     } else if (url.includes('fotocasa.es')) {
         const button = await page.waitForSelector('#didomi-notice-agree-button');
@@ -29,7 +29,7 @@ router.addDefaultHandler(async ({ page, request, log }) => {
 
         });
         await page.waitForSelector('article:nth-child(33)');
-        await new FotocasaCrawler({ telegramId: '123' }).parseAssets(page);
+        await new FotocasaCrawler().parseAssets(page);
     } else {
         log.info(`No handler for ${url}`);
     }

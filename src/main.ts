@@ -45,7 +45,7 @@ try {
 }
 
 function startCrawling() {
-  const startUrls = ["https://www.idealista.com/alquiler-habitacion/sevilla-sevilla/", "https://www.fotocasa.es/es/comprar/viviendas/sevilla-capital/todas-las-zonas/l"];
+  const startUrls = ["https://www.idealista.com/alquiler-viviendas/sevilla-sevilla/", "https://www.fotocasa.es/es/comprar/viviendas/sevilla-capital/todas-las-zonas/l"];
 
 
   const crawler = new PlaywrightCrawler({
