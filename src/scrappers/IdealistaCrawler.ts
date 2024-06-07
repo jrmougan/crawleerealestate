@@ -18,7 +18,7 @@ export class IdealistaCrawler {
                 const details = rawFlat.querySelectorAll('span.item-detail');
                 let m2 = '';
                 let floor = '';
-                const id = link.match(/\/\d{5,}\//gm)?.[0]?.replace(/\//g, '') || '';
+                const id = link.match(/\/\d{3,}\//gm)?.[0]?.replace(/\//g, '') || '';
                 details.forEach((detail) => {
                     if (detail.textContent?.includes('m²')) {
                         m2 = detail.textContent.replace('m²', '');

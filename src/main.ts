@@ -2,12 +2,21 @@
 import {  Dataset, PlaywrightCrawler, ProxyConfiguration, RequestQueue } from "crawlee";
 import { Telegraf } from 'telegraf'
 
+import sqlite3 from 'sqlite3'
+import { open } from 'sqlite'
 
 import { router } from "./routes.js";
 // Import the framework and instantiate it
 import Fastify from "fastify";
-import { parse } from "path";
+import FastifyStatic from '@fastify/static';
+import FastifyFormbody from '@fastify/formbody';
 import { IAsset } from "./entity/IAsset.js";
+import path from "path";
+import { fileURLToPath } from 'url';
+
+// Configuración para ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const fastify = Fastify({
   logger: true,
@@ -16,12 +25,18 @@ const fastify = Fastify({
 const telegram = new Telegraf('5042109408:AAHBrCsNiuI3lXBEiLjmyxqXapX4h1LHbJs', {handlerTimeout:10});
 
 
-// Declare a route
-fastify.get("/", async function handler(request, reply) {
-  
+fastify.register(FastifyStatic, {
+  root: path.join(__dirname, 'public'),
+  prefix: '/', 
+})
 
-  return { hello: "world" };
-});
+fastify.register(FastifyFormbody)
+
+fastify.post('/submit', async (request: Fastify.FastifyRequest<{ Body: { telegramId: string } }>, reply) => {
+  const { telegramId } = request.body;
+  console.log(telegramId)
+})
+
 
 
 
@@ -66,14 +81,33 @@ function startCrawling() {
 
     const data = await dataset.getData();
 
+    const db = await open({
+      filename: './database.db',
+      driver: sqlite3.Database
+    })
+
+    db.exec(`CREATE TABLE IF NOT EXISTS assets (id TEXT PRIMARY KEY)`)
+
     console.log(data.count)
     for (const item of data.items) {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      
       const asset = item as IAsset;
-      console.log('enviando mensaje')
+
+      const isSended = await db.get('SELECT * FROM assets WHERE id = ?', [asset.id]);
+
+      console.log('isSended', isSended)
+
+
+      if (!isSended){
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       telegram.telegram.sendMessage("-1002126678632", `${asset.price}, ${asset.link}`, { parse_mode: 'HTML' }).then(() => {
-        console.log('message sent')
+        db.run(`INSERT INTO assets (id) VALUES ('${asset.id}')`).catch((err) => {
+          console.error(err)
+        })
       })
+    } else {
+      console.log('Already sended', asset.id)
+    }
 
 
     }
@@ -84,7 +118,7 @@ function startCrawling() {
     await queue.drop();
     
   });
-  crawler.teardown
+  crawler.teardown;
 } catch (error) {
   console.error(error);
 }

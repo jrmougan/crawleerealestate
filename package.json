@@ -4,6 +4,8 @@
     "type": "module",
     "description": "This is an example of a Crawlee project.",
     "dependencies": {
+        "@fastify/formbody": "^7.4.0",
+        "@fastify/static": "^7.0.4",
         "crawlee": "^3.0.0",
         "cron": "^3.1.7",
         "fastify": "^4.27.0",
