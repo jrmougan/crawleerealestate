@@ -8,6 +8,7 @@
         "cron": "^3.1.7",
         "fastify": "^4.27.0",
         "playwright": "*",
+        "sqlite": "^5.1.1",
         "telegraf": "^4.16.3",
         "useragent-wizard": "^0.2.0"
     },
