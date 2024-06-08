@@ -57,7 +57,7 @@ async function startScrapper() {
 
 fastify.register(FastifyStatic, {
   root: path.join(__dirname, 'public'),
-  prefix: '/', 
+  prefix: '', 
 })
 
 fastify.register(FastifyFormbody)
@@ -72,7 +72,7 @@ fastify.post('/submit', async (request: Fastify.FastifyRequest<{ Body: { telegra
   // save config.json in filesystem
 
   // if file not exist, start the scrapper
-  fs.open(path.join(__dirname, 'config.json'), 'r', (err, fd) => {
+  fs.open(path.join(__dirname, 'config.json'), 'r', (err) => {
     if (err) {
       console.error('Config file not found')
       fs.writeFileSync(path.join(__dirname, 'config.json'), JSON.stringify({ telegramId, links, interval }));
@@ -101,7 +101,7 @@ try {
     // some other closing procedures go here
     process.exit(0);
   });
-  await fastify.listen({ port: 3000 });
+  await fastify.listen({ port: 3000, host:"0.0.0.0" });
   startScrapper();
 } catch (err) {
   fastify.log.error(err);
