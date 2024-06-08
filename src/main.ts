@@ -13,6 +13,7 @@ import FastifyFormbody from '@fastify/formbody';
 import { IAsset } from "./entity/IAsset.js";
 import path from "path";
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 // Configuración para ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -24,6 +25,34 @@ const fastify = Fastify({
 
 const telegram = new Telegraf('5042109408:AAHBrCsNiuI3lXBEiLjmyxqXapX4h1LHbJs', {handlerTimeout:10});
 
+async function startScrapper() {
+  while (true) {
+    fs.open(path.join(__dirname, 'config.json'), 'r', (err, fd) => {
+      if (err) {
+        console.error('Config file not found')
+        return;
+      }
+  
+      fs.readFile(fd, (err, data) => {
+        if (err) {
+          console.error('Error reading config file')
+          return;
+        }
+  
+        const config = JSON.parse(data.toString());
+  
+        console.log('config', config)
+  
+        startCrawling(config.telegramId, config.links)
+      })
+    }
+    )
+    await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000));
+  }
+  
+
+}
+
 
 fastify.register(FastifyStatic, {
   root: path.join(__dirname, 'public'),
@@ -32,10 +61,32 @@ fastify.register(FastifyStatic, {
 
 fastify.register(FastifyFormbody)
 
-fastify.post('/submit', async (request: Fastify.FastifyRequest<{ Body: { telegramId: string } }>, reply) => {
-  const { telegramId } = request.body;
-  console.log(telegramId)
+fastify.post('/submit', async (request: Fastify.FastifyRequest<{ Body: { telegramId: string, links: string[] } }>, reply) => {
+  const { telegramId, links } = request.body;
+
+  // save the scrapper config into json file and start the scrapper
+
+  console.log(telegramId, links)
+
+  // save config.json in filesystem
+
+  // if file not exist, start the scrapper
+  fs.open(path.join(__dirname, 'config.json'), 'r', (err, fd) => {
+    if (err) {
+      console.error('Config file not found')
+      fs.writeFileSync(path.join(__dirname, 'config.json'), JSON.stringify({ telegramId, links }));
+      startCrawling(telegramId, links)
+      return;
+    } else {
+      fs.writeFileSync(path.join(__dirname, 'config.json'), JSON.stringify({ telegramId, links }));
+
+    }
+  })
+
+
+  reply.send('ok')
 })
+
 
 
 
@@ -50,17 +101,17 @@ try {
     process.exit(0);
   });
   await fastify.listen({ port: 3000 });
-  while (true) {
-    startCrawling();
-    await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000));
-  }
+  startScrapper();
 } catch (err) {
   fastify.log.error(err);
   process.exit(1);
 }
 
-function startCrawling() {
-  const startUrls = ["https://www.idealista.com/alquiler-viviendas/sevilla-sevilla/", "https://www.fotocasa.es/es/comprar/viviendas/sevilla-capital/todas-las-zonas/l"];
+
+
+function startCrawling(telegramId: string, links: string[]) {
+  const startUrls = links;
+
 
 
   const crawler = new PlaywrightCrawler({
@@ -100,7 +151,7 @@ function startCrawling() {
 
       if (!isSended){
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      telegram.telegram.sendMessage("-1002126678632", `${asset.price}, ${asset.link}`, { parse_mode: 'HTML' }).then(() => {
+      telegram.telegram.sendMessage(telegramId, `${asset.price}, ${asset.link}`, { parse_mode: 'HTML' }).then(() => {
         db.run(`INSERT INTO assets (id) VALUES ('${asset.id}')`).catch((err) => {
           console.error(err)
         })

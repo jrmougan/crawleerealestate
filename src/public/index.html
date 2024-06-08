@@ -9,7 +9,7 @@
 <body>
   <div class="container mt-5">
     <h2>Configuración</h2>
-    <form action="/submit" method="POST">
+    <form action="/submit" id="configForm" >
       <div class="form-group">
         <label for="telegramId">ID Chat Telegram</label>
         <input type="text" class="form-control" id="telegramId" name="telegramId" required>
@@ -29,6 +29,37 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   <script>
+    $(document).ready(function () {
+
+    });
+    document.getElementById('configForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const data = {};
+      for (const [key, value] of formData.entries()) {
+        if (key.startsWith('link')) {
+          if (!data.links) {
+            data.links = [];
+          }
+          data.links.push(value);
+          continue;
+        }
+        data[key] = value;
+      }
+      fetch('/submit', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(response => {
+        if (response.ok) {
+          alert('Configuración guardada correctamente');
+        } else {
+          alert('Error al guardar la configuración');
+        }
+      });
+    });
     document.getElementById('add-button').addEventListener('click', function () {
       const linksContainer = document.getElementById('additional-links');
       const newLinkIndex = linksContainer.childElementCount + 2; // Comenzamos desde 2 porque el primer link es link1
