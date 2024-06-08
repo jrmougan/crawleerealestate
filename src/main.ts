@@ -26,6 +26,7 @@ const fastify = Fastify({
 const telegram = new Telegraf('5042109408:AAHBrCsNiuI3lXBEiLjmyxqXapX4h1LHbJs', {handlerTimeout:10});
 
 async function startScrapper() {
+  let interval = 15;
   while (true) {
     fs.open(path.join(__dirname, 'config.json'), 'r', (err, fd) => {
       if (err) {
@@ -42,14 +43,14 @@ async function startScrapper() {
         const config = JSON.parse(data.toString());
   
         console.log('config', config)
+        interval = config.interval || 15;
   
         startCrawling(config.telegramId, config.links)
       })
     }
     )
-    await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000));
-  }
-  
+    await new Promise((resolve) => setTimeout(resolve, interval * 60 * 1000));
+  } 
 
 }
 
@@ -61,12 +62,12 @@ fastify.register(FastifyStatic, {
 
 fastify.register(FastifyFormbody)
 
-fastify.post('/submit', async (request: Fastify.FastifyRequest<{ Body: { telegramId: string, links: string[] } }>, reply) => {
-  const { telegramId, links } = request.body;
+fastify.post('/submit', async (request: Fastify.FastifyRequest<{ Body: { telegramId: string, links: string[], interval:number } }>, reply) => {
+  const { telegramId, links, interval } = request.body;
 
   // save the scrapper config into json file and start the scrapper
 
-  console.log(telegramId, links)
+  console.log(telegramId, links, interval)
 
   // save config.json in filesystem
 
@@ -74,11 +75,11 @@ fastify.post('/submit', async (request: Fastify.FastifyRequest<{ Body: { telegra
   fs.open(path.join(__dirname, 'config.json'), 'r', (err, fd) => {
     if (err) {
       console.error('Config file not found')
-      fs.writeFileSync(path.join(__dirname, 'config.json'), JSON.stringify({ telegramId, links }));
+      fs.writeFileSync(path.join(__dirname, 'config.json'), JSON.stringify({ telegramId, links, interval }));
       startCrawling(telegramId, links)
       return;
     } else {
-      fs.writeFileSync(path.join(__dirname, 'config.json'), JSON.stringify({ telegramId, links }));
+      fs.writeFileSync(path.join(__dirname, 'config.json'), JSON.stringify({ telegramId, links, interval }));
 
     }
   })
