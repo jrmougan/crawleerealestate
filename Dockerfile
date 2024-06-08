@@ -1,9 +1,8 @@
-LABEL org.opencontainers.image.source=https://github.com/jrmougan/crawleerealestate
-
 # Specify the base Docker image. You can read more about
 # the available images at https://crawlee.dev/docs/guides/docker-images
 # You can also use any other image from Docker Hub.
 FROM node:lts-bookworm-slim
+LABEL org.opencontainers.image.source=https://github.com/jrmougan/crawleerealestate
 
 WORKDIR /app
 
