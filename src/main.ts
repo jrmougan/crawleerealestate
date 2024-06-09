@@ -152,8 +152,8 @@ function startCrawling(telegramId: string, links: string[]) {
 
       if (!isSended){
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      const pricem2 = (Number(asset.price.replace(/[.]|[€]/gm, '')) / Number(asset.m2)).toFixed(2) || 'N/D';
-      telegram.telegram.sendMessage(telegramId, `<b>${asset.price}</b> [${asset.m2} m² -> ${pricem2} €/m²] ${asset.link}`, { parse_mode: 'HTML' }).then(() => {
+      const pricem2 = (Number(asset.price.replace(/[.]|[€]|(\/mes)/gm, '')) / Number(asset.m2)).toFixed(2) || 'N/D';
+      telegram.telegram.sendMessage(telegramId, `<b>${asset.price}</b> [${asset.m2}m² -> ${pricem2}€/m²] ${asset.link}`, { parse_mode: 'HTML' }).then(() => {
         db.run(`INSERT INTO assets (id) VALUES ('${asset.id}')`).catch((err) => {
           console.error(err)
         })
