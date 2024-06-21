@@ -1,7 +1,7 @@
 # Specify the base Docker image. You can read more about
 # the available images at https://crawlee.dev/docs/guides/docker-images
 # You can also use any other image from Docker Hub.
-FROM node:lts-bookworm-slim
+FROM node:lts-bookworm
 LABEL org.opencontainers.image.source=https://github.com/jrmougan/crawleerealestate
 
 WORKDIR /app
@@ -15,7 +15,6 @@ RUN if [ "$(uname -m)" = "armv7l" ]; then \
     echo "Running on ARMv7 architecture"; \
     apt-get update; \
     apt-get install -y python3 build-essential; \
-    npx playwright install; \
 fi
 
 # Install all dependencies. Don't audit to speed up the installation.
