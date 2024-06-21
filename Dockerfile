@@ -10,9 +10,12 @@ WORKDIR /app
 # to speed up the build using Docker layer cache.
 COPY package*.json ./
 
-RUN apt-get update
-# Add python
+# Arm custom package
 RUN apt-get install -y python3 build-essential
+RUN if [ "$(uname -m)" = "armv7l" ]; then \
+    echo "Running on ARMv7 architecture"; \
+    apt-get install -y python3 build-essential; \
+fi
 
 # Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
