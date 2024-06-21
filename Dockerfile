@@ -10,6 +10,9 @@ WORKDIR /app
 # to speed up the build using Docker layer cache.
 COPY package*.json ./
 
+# Add python
+RUN apt install python3 python
+
 # Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
 
