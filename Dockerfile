@@ -10,6 +10,7 @@ WORKDIR /app
 # to speed up the build using Docker layer cache.
 COPY package*.json ./
 
+RUN apt update
 # Add python
 RUN apt install python3 python
 
