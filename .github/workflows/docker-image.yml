@@ -35,4 +35,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ghcr.io/${{github.actor}}/crawleerealestate:latest
-          platforms: linux/arm64, linux/amd64, linux/arm32v7
+          platforms: linux/arm64, linux/amd64, linux/arm/v7
