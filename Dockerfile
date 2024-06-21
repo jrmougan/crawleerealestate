@@ -12,7 +12,7 @@ COPY package*.json ./
 
 RUN apt update
 # Add python
-RUN apt install python3 python
+RUN apt install python3
 
 # Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
