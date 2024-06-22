@@ -13,8 +13,7 @@ COPY package*.json ./
 # Arm custom package
 RUN if [ "$(uname -m)" = "armv7l" ]; then \
     echo "Running on ARMv7 architecture"; \
-    apt-get update; \
-    apt-get install -y python3 build-essential; \
+    npx playwright install --with-deps; \
 fi
 
 # Install all dependencies. Don't audit to speed up the installation.
